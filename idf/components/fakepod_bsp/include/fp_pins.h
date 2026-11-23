@@ -21,3 +21,10 @@
 #define FP_PIN_SD_D1 21
 #define FP_PIN_SD_D2 22
 #define FP_PIN_SD_D3 23
+/* I2C0: touch CST820 + AXP2101 PMU + QMI8658 IMU + PCF85063 RTC */
+#define FP_PIN_I2C_SDA 48
+#define FP_PIN_I2C_SCL 47
+#define FP_I2C_FREQ_HZ 400000
+#define FP_PIN_TP_INT 45
+#define FP_PIN_TP_RST 46
+#define FP_I2C_ADDR_TOUCH 0x15

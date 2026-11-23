@@ -14,6 +14,7 @@ void pollBootButton();
 void pollPwrButton();
 void updateScreenLock(uint32_t now);
 void ensureMon();
+void fpPanelPolicy(uint32_t now);
 PowerCtx powerCtx(uint32_t now);
 void wakeUI();
 void updateBrightness(uint32_t now);

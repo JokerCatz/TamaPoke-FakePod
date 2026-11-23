@@ -600,6 +600,25 @@ void ensureMon() {
   }
 }
 
+
+// OLED: never left lit. After 5 minutes without a touch (power.h DIM_OFF) the panel really goes off (brightness 0, DISPOFF, SLEEP IN: upstream's last stage is only
+// brightness 8), and the next touch wakes it. Drawing is skipped while it is off.
+static bool fpPanelOff = false;
+void fpPanelPolicy(uint32_t now) {
+  bool want = screenOff || dimStageFor(idleSince(now, lastInteract)) == DIM_OFF;
+  if (want && !fpPanelOff) {
+    panel->displayOff();
+    fpPanelOff = true;
+    Serial.println("panel off (idle)");
+  } else if (!want && fpPanelOff) {
+    panel->displayOn();
+    fpPanelOff = false;
+    panelBrightness = 255;  // force the next updateBrightness() to send the real level
+    lastRender = 0;
+    Serial.println("panel on (touch)");
+  }
+}
+
 void loop() {
   uint32_t now = millis();
   pet.update(now);
@@ -638,6 +657,9 @@ void loop() {
 #endif
 
   updateBrightness(now);
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+  fpPanelPolicy(now);
+#endif
 
   // bateria al limite seguro (sin USB): se guarda la partida y se apaga el PMU antes de que la
   // celda baje mas; el RTC conserva la hora
@@ -698,6 +720,9 @@ void loop() {
   batSetPollMs(powerCacheMs(pc));
   uint32_t interval = frameIntervalMs(pc);
   bool drewFrame = false;
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+  if (fpPanelOff) interval = 0;  // dark panel: nothing to draw
+#endif
   if (interval && now - lastRender >= interval) {
     lastRender = now;
     drewFrame = render();
@@ -765,6 +790,10 @@ void updateBrightness(uint32_t now) {
 // 200 ms: despierta por el temporizador o por un toque (el INT del tactil baja). Con USB no, para
 // no perder el puerto serie de la tarjeta SD: se mira sin cache, por si se acaba de enchufar.
 void idleWait(PowerCtx c) {
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+  delay(idleDelayMs(c));  // no light sleep on the Fake Pod yet (USB-Serial/JTAG, touch INT wake and the PMU key are not measured)
+  return;
+#endif
 #if !TOUCH_POLLING
   // no sleep during a gesture/radio operation or while QSPI DMA is in flight
   bool locked = screenIsLocked();

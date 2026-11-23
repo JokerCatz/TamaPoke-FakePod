@@ -79,7 +79,9 @@ public:
     const char *c_str() const { return std::string::c_str(); }
     int length() const { return (int)size(); }
     bool startsWith(const char *p) const { return rfind(p, 0) == 0; }
+    int lastIndexOf(const char *c) const { size_t i = rfind(c); return i == npos ? -1 : (int)i; }
     int lastIndexOf(char c) const { size_t i = rfind(c); return i == npos ? -1 : (int)i; }
+    int indexOf(const char *c) const { size_t i = find(c); return i == npos ? -1 : (int)i; }
     int indexOf(char c) const { size_t i = find(c); return i == npos ? -1 : (int)i; }
     String substring(int from) const { return String(substr((size_t)from)); }
     String substring(int from, int to) const { return String(substr((size_t)from, (size_t)(to - from))); }
