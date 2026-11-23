@@ -12,7 +12,8 @@ void setup();
 bool render();
 extern Arduino_Canvas *gfx;
 extern Pet pet;
-extern bool gLangPick;
+extern bool gLangPick, helpOpen;
+extern uint8_t helpPage;
 extern bool cardOpen, galleryOpen, clockOpen, gameOpen, kbOpen, screenKeyValid;
 extern uint8_t cardPage, choiceKind;
 extern uint32_t choiceUntil;
@@ -32,7 +33,7 @@ static void shot(const char *dir, const char *lang, const char *name)
     for (int i = 0; i < 460 * 460; i++) { uint16_t p = fb[i]; fputc(((p >> 11) & 31) * 255 / 31, f); fputc(((p >> 5) & 63) * 255 / 63, f); fputc((p & 31) * 255 / 31, f); }
     fclose(f);
 }
-static void reset_ui() { gLangPick = false; cardOpen = galleryOpen = clockOpen = gameOpen = kbOpen = false; cardPage = 0; choiceKind = 0; galleryDetail = 0; }
+static void reset_ui() { gLangPick = false; helpOpen = false; cardOpen = galleryOpen = clockOpen = gameOpen = kbOpen = false; cardPage = 0; choiceKind = 0; galleryDetail = 0; }
 
 int main(int argc, char **argv)
 {
@@ -49,6 +50,7 @@ int main(int argc, char **argv)
         reset_ui(); galleryOpen = true; galleryDirty = true; shot(dir, x.tag, "gallery");
         reset_ui(); openClock(); shot(dir, x.tag, "clock");
         reset_ui(); startGame(); shot(dir, x.tag, "game");
+        for (int hp = 0; hp < 5; hp++) { reset_ui(); helpOpen = true; helpPage = hp; char n[16]; snprintf(n, sizeof n, "help%d", hp); shot(dir, x.tag, n); }
         reset_ui(); pet.starterPick = true; shot(dir, x.tag, "starter"); pet.starterPick = false;
     }
     gLangPick = true; setLang(LANG_EN); applyLangFont(); shot(dir, "en", "langpick"); gLangPick = false;

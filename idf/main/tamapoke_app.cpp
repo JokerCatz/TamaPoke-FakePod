@@ -49,6 +49,7 @@
 #include "bootbutton.h"
 #include "screenlock.h"
 #include "trainingcapture.h"
+#include "help_text.h"  // Fake Pod build: in-game help pages (EN / 繁體 / 简体)
 #include <Preferences.h>
 
 // Version del firmware. Subir este numero en cada release (y manifest.json para
@@ -298,6 +299,8 @@ uint32_t sdEpoch = 0;  // +1 cada vez que se recarga la SD (las miniaturas cambi
 uint32_t lastInteract = 0;
 uint8_t dimStage = 0;        // 0 despierto, 1 atenuado (90s), 2 casi apagado (5min)
 bool gLangPick = false;       // first-run language picker is up (Fake Pod build)
+bool helpOpen = false;        // in-game help pages
+uint8_t helpPage = 0;
 static bool fpPanelOff = false;  // the OLED is really off (see fpPanelPolicy)
 bool swallowGesture = false; // el toque que despierta no acciona nada
 uint32_t holdStart = 0;     // pulsacion larga sobre el bicho
@@ -1170,6 +1173,7 @@ void handleTouch() {
 void openClock();  // prototipo
 
 void onSwipeV(int dir) {
+  if (helpOpen) { if (dir < 0) { helpOpen = false; helpPage = 0; } return; }  // swipe up closes the help
   if (gLangPick || pet.awaitingStarter()) return;  // bloqueado durante la eleccion de inicial
   if (gameOpen || galleryOpen || kbOpen || sackOpen || pet.ceremony) return;
   if (clockOpen) { clockOpen = false; return; }
@@ -1187,6 +1191,7 @@ void onSwipeV(int dir) {
 
 // deslizar: dir +1 = hacia la derecha
 void onSwipe(int dir) {
+  if (helpOpen) { helpSwipe(dir); return; }
   if (gLangPick || pet.awaitingStarter()) return;  // bloqueado durante la eleccion de inicial
   if (gameOpen || kbOpen || clockOpen) return;
   if (cardOpen) {  // dentro de la ficha: cambiar entre las 4 paginas
@@ -1223,6 +1228,7 @@ void onSwipe(int dir) {
 }
 
 void onTap(int16_t x, int16_t y) {
+  if (helpOpen) { helpTap(); return; }
   if (gLangPick) { langPickTap(x, y); return; }
   // Serial.printf("TOUCH %d %d\n", x, y);  // diagnostico (silenciado: satura el log)
   if (pet.awaitingStarter()) {  // primera partida: elegir inicial
@@ -1461,6 +1467,57 @@ static inline void fillBackdrop(uint16_t colour) {
 #endif
 }
 
+// ---------- help pages (Fake Pod build) ----------
+#define HELP_PILL_X (336 + UI_DX)
+#define HELP_PILL_Y 24
+#define HELP_PILL_W 96
+#define HELP_PILL_H 30
+
+void renderHelp() {
+  const HelpSet &hs = helpFor(gLang);
+  if (helpPage >= hs.pages) helpPage = 0;
+  const HelpPage &pg = hs.page[helpPage];
+  gfx->fillScreen(RGB565_BLACK);
+  fillBackdrop(UI_BG_DAY);
+  gfx->setTextColor(UI_BAR_BAD);
+  setSize(3);
+  setCur(centerX(pg.title, 3), 30);
+  printT(pg.title);
+  gfx->setTextColor(UI_INK);
+  setSize(2);
+  int y = 84;
+  for (int i = 0; i < HELP_MAX_LINES && pg.lines[i]; i++) {
+    setCur(30 + UI_DX, y);
+    printT(pg.lines[i]);
+    y += 26;
+  }
+  for (int i = 0; i < hs.pages; i++) {  // page dots
+    int dx = CX - (hs.pages * 22) / 2 + i * 22 + 8;
+    if (i == helpPage) gfx->fillCircle(dx, 392, 5, UI_INK);
+    else gfx->drawCircle(dx, 392, 5, UI_INK);
+  }
+  gfx->setTextColor(UI_TRACK);
+  setSize(2);
+  const char *hint = (helpPage + 1 >= hs.pages) ? hs.close : hs.next;
+  setCur(centerX(hint, 2), 414);
+  printT(hint);
+  flushUI();
+}
+
+void helpTap() {
+  const HelpSet &hs = helpFor(gLang);
+  if (helpPage + 1 >= hs.pages) { helpOpen = false; helpPage = 0; }
+  else helpPage++;
+  sfxPlay(SFX_TAP);
+}
+
+void helpSwipe(int dir) {  // dir +1 = rightwards: back a page; leftwards: forward; past the ends closes
+  const HelpSet &hs = helpFor(gLang);
+  int p = (int)helpPage + (dir > 0 ? -1 : 1);
+  if (p < 0 || p >= hs.pages) { helpOpen = false; helpPage = 0; return; }
+  helpPage = (uint8_t)p;
+}
+
 // ---------- first-run language picker (Fake Pod build): English / 繁體中文 / 简体中文 ----------
 // Shown before anything else until a language has been stored. Each label is drawn in its own script, so the font is switched per row (applyLangFont follows gLang).
 static const Lang PICK_LANG[3] = { LANG_EN, LANG_ZH, LANG_ZHS };
@@ -1504,6 +1561,7 @@ bool langPickTap(int16_t x, int16_t y) {
       setLang(PICK_LANG[i]);                       // stores it: the picker never comes back
       applyLangFont();
       gLangPick = false;
+      helpOpen = true; helpPage = 0;                 // first run: show how to play before the starter choice
       sfxPlay(SFX_TAP);
       return true;
     }
@@ -1661,7 +1719,7 @@ void printT(const char *s) {
 // Pantallas que solo cambian con un toque (o con un dato que cambia muy de vez en cuando):
 // mientras su "clave" no cambie no se repintan ni se vuelcan por QSPI.
 static bool staticScreen() {
-  if (gLangPick || pet.awaitingStarter()) return true;
+  if (helpOpen || gLangPick || pet.awaitingStarter()) return true;
   if (galleryOpen || gameOpen || sackOpen) return false;  // la galeria gestiona su propio repintado
   if (kbOpen || clockOpen) return true;
   return cardOpen && cardPage != 0;  // la pagina 0 tiene el retrato animado
@@ -1669,7 +1727,7 @@ static bool staticScreen() {
 static uint32_t mixKey(uint32_t h, uint32_t v) { return (h ^ v) * 16777619u; }
 static uint32_t screenKey() {
   uint32_t h = 2166136261u;
-  h = mixKey(h, gLangPick ? 9 : pet.awaitingStarter() ? 1 : kbOpen ? 2 : clockOpen ? 3 : 4 + cardPage);
+  h = mixKey(h, helpOpen ? 20 + helpPage : gLangPick ? 9 : pet.awaitingStarter() ? 1 : kbOpen ? 2 : clockOpen ? 3 : 4 + cardPage);
   h = mixKey(h, sdEpoch);
   if (kbOpen) {
     h = mixKey(h, nameLen);
@@ -1712,6 +1770,10 @@ bool render() {
     screenKeyValid = true;
   } else {
     screenKeyValid = false;
+  }
+  if (helpOpen) {
+    renderHelp();
+    return true;
   }
   if (gLangPick) {  // first run: language before anything else
     renderLangPick();
@@ -2359,6 +2421,14 @@ void renderClock() {
   setCur(LANG_PILL_X + (LANG_PILL_W - textW(lp, 2)) / 2, LANG_PILL_Y + 8);
   printT(lp);
 
+  // help pill (top right)
+  gfx->fillRoundRect(HELP_PILL_X, HELP_PILL_Y, HELP_PILL_W, HELP_PILL_H, 8, UI_WHITE);
+  gfx->drawRoundRect(HELP_PILL_X, HELP_PILL_Y, HELP_PILL_W, HELP_PILL_H, 8, UI_INK);
+  gfx->setTextColor(UI_INK);
+  setSize(2);
+  setCur(HELP_PILL_X + (HELP_PILL_W - textW(helpFor(gLang).label, 2)) / 2, HELP_PILL_Y + 8);
+  printT(helpFor(gLang).label);
+
   gfx->fillRoundRect(133 + UI_DX, 340, 200, 48, 14, UI_BAR_OK);
   gfx->setTextColor(UI_BG_DAY);
   setSize(3);
@@ -2380,6 +2450,10 @@ void renderClock() {
 }
 
 void clockTap(int16_t x, int16_t y) {
+  if (y >= HELP_PILL_Y && y <= HELP_PILL_Y + HELP_PILL_H && x >= HELP_PILL_X && x < HELP_PILL_X + HELP_PILL_W) {
+    helpOpen = true; helpPage = 0;
+    return;
+  }
   if (y >= 190 && y <= 248) {  // fila de botones +/-
     if (x >= 104 + UI_DX && x < 162 + UI_DX) clockH = (clockH + 23) % 24;
     else if (x >= 170 + UI_DX && x < 228 + UI_DX) clockH = (clockH + 1) % 24;

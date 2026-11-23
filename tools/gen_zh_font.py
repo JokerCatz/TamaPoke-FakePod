@@ -14,6 +14,7 @@ for name in ('STRINGS', 'MED_NAME', 'MED_LBL', 'MED_DSC'):
     for zi in zis:
         for s in T.extract_table(src, name, len(T.LANGS))[zi]:
             chars |= set(ast.literal_eval(s))
+chars |= set(c for c in open(os.path.join(ROOT, 'help_text.h'), encoding='utf-8').read() if ord(c) >= 0x20)   # the in-game help pages
 ns = {}; exec(open(os.path.join(HERE, 'dex_names.py'), encoding='utf-8').read(), ns)
 for d in ns['LOCAL_NAMES'].values():
     chars |= set(d.get('zh', '')) | set(d.get('zh_hans', ''))
