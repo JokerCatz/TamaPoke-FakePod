@@ -26,3 +26,4 @@ tools/build/
 /out/
 .venv/
 tools/host/out/
+release/

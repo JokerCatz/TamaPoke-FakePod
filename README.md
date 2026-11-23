@@ -1,3 +1,5 @@
+> **This fork runs on the Fake Pod Nano Pro (ESP32-S31, 460×460 AMOLED).** ESP-IDF port in [`idf/`](idf/), English / 繁體中文 / 简体中文, in-game help. Install: [English](docs/install/INSTALL.en.md) · [繁體中文](docs/install/INSTALL.zh-TW.md) · [简体中文](docs/install/INSTALL.zh-CN.md) · notices: [NOTICE-FAKEPOD.md](NOTICE-FAKEPOD.md). Upstream (Waveshare ESP32-S3 round AMOLED): https://github.com/socquique/TamaPoke
+
 # TamaPoke
 
 [![Flash in browser](https://img.shields.io/badge/flash-in%20browser-FF6B00?logo=googlechrome&logoColor=white)](https://socquique.github.io/TamaPoke/web/)
