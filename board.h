@@ -23,7 +23,37 @@
 // en flash en la 1.75C), no necesariamente una tarjeta SD. Regla: el codigo de juego/UI
 // nunca toca GPIO crudos; solo macros de placa, y el firmware degrada lo que valga 0.
 
-#if defined(BOARD_GUITION_4848S040)
+// Fake Pod Nano Pro (ESP32-S31, 460x460 CO5300 AMOLED, CST820, AXP2101, PCF85063, QMI8658, CS43131 DAC, TF card): selected with -DBOARD_FAKEPOD_NANO_PRO.
+// Built by the ESP-IDF project in idf/ (the pin map is idf/components/fakepod_bsp/include/fp_pins.h: the BSP, not Arduino, owns the pins).
+// The UI keeps the 466 design: UI_DX (= CX - 233) centres it on the 460 panel; the panel is square (PANEL_ROUND 0).
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+#define LCD_WIDTH 460
+#define LCD_HEIGHT 460
+#define PANEL_ROUND 0
+#define DISPLAY_BEGIN_HZ 40000000
+#define TOUCH_ADDR 0x15       // CST820
+#define TOUCH_POLLING 0
+#define HAS_PMU 1             // AXP2101: READ-ONLY here (no voltage / rail / charger register is ever written)
+#define HAS_RTC 1             // PCF85063 at 0x51
+#define HAS_AUDIO 0           // CS43131 headphone DAC, no speaker: audio is a stub for now
+#define HAS_SD 1              // TF card, SDMMC 4-bit
+#define SD_SPI 0
+#define BOARD_NAME "Fake Pod Nano Pro (ESP32-S31)"
+#define IIC_SDA 48            // pins that upstream code names directly
+#define IIC_SCL 47
+#define TP_INT 45
+#define TP_RESET 46
+#define LCD_RESET 36
+#define LCD_CS 37             // QSPI display (constructor arguments of the unused-here Arduino bus object)
+#define LCD_SCLK 38
+#define LCD_SDIO0 39
+#define LCD_SDIO1 40
+#define LCD_SDIO2 42
+#define LCD_SDIO3 43
+#define SDMMC_CLK 24
+#define SDMMC_CMD 25
+#define SDMMC_DATA 20
+#elif defined(BOARD_GUITION_4848S040)
 // Guition / Sunton ESP32-S3-4848S040: panel IPS 4.0" 480x480, driver ST7701S.
 // Pixels por bus paralelo RGB de 16 bits (DMA de la S3); la secuencia de
 // init del ST7701S va por SPI de 3 hilos. Táctil GT911 por I2C.

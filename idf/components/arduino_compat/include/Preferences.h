@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 // Preferences on top of NVS (same method names / defaults as arduino-esp32's, only the subset TamaPoke uses). NVS must be initialised (nvs_flash_init) first.
+// On the PC (host build) it is an in-memory table.
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#ifdef ESP_PLATFORM
 #include "nvs.h"
+#else
+#include <map>
+#include <string>
+#include <vector>
+#endif
 
 class Preferences {
 public:
@@ -28,6 +35,10 @@ public:
     size_t getBytes(const char *k, void *buf, size_t len);
     size_t getString(const char *k, char *buf, size_t len);
 private:
+#ifdef ESP_PLATFORM
     nvs_handle_t h_ = 0;
+#else
+    std::string ns_;
+#endif
     bool open_ = false, ro_ = false;
 };

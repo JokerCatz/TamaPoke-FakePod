@@ -14,3 +14,10 @@
 #define FP_PIN_LCD_D3 43
 #define FP_PIN_LCD_RST 36
 #define FP_PIN_LCD_VCI_EN 44     /* AMOLED supply enable, high = on. NOT the AXP2101: no PMU voltage register is ever written */
+/* TF card, SDMMC 4-bit (the same GPIOs as the round board) */
+#define FP_PIN_SD_CLK 24
+#define FP_PIN_SD_CMD 25
+#define FP_PIN_SD_D0 20
+#define FP_PIN_SD_D1 21
+#define FP_PIN_SD_D2 22
+#define FP_PIN_SD_D3 23
