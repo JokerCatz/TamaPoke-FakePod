@@ -440,9 +440,10 @@ void pollPwrButton() {
     lastPwr = now;
     if (pwrShortPressed()) {
 #if defined(BOARD_FAKEPOD_NANO_PRO)
-      // either side key: sleep when the screen is lit, wake when it is dark (dark = pressed off, or the idle timeout turned it off)
-      if (fpPanelOff) { screenOff = false; wakeUI(); }
-      else screenOff = true;
+      // either side key = the Moon button plus the screen: lit -> the pet goes to sleep and the screen turns off; dark (pressed off, or the idle timeout) -> the screen
+      // turns on and the pet wakes up. Sleeping is what restores energy, so the key has to do it, not only blank the panel.
+      if (fpPanelOff) { screenOff = false; if (pet.sleeping) pet.toggleLight(); wakeUI(); }
+      else { if (!pet.sleeping) pet.toggleLight(); screenOff = true; }
 #else
       screenOff = !screenOff;
       if (!screenOff) wakeUI();

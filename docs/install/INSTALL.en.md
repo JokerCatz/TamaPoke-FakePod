@@ -34,7 +34,7 @@
 3. Choose your first Pokémon.
 
 ## Things to know
-- **Screen sleep:** press either side key to sleep or wake the screen; it also sleeps by itself after 2 minutes. Touching the screen wakes it. (Holding the **top** key for 4 seconds powers the device off — that is the power chip's own function.)
+- **Side keys = the Moon button:** press either side key and the pet goes to sleep (this is what restores its energy) and the screen turns off; press again to wake both. The screen also turns off by itself after 2 minutes without a touch (the pet stays awake); touching the screen wakes the screen. (Holding the **top** key for 4 seconds powers the device off — that is the power chip's own function.)
 - **Do not hold the bottom key while the device resets or powers on** unless you want the download mode.
 - **No sound yet.** The game has sound effects, but this build is silent (the board has a headphone DAC and no speaker; it is not wired up yet).
 - **Erase the saved game** (the pet, the language): `python -m esptool --chip esp32s31 --port PORT --no-stub erase-region 0x9000 0x6000`
