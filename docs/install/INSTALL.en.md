@@ -11,6 +11,8 @@
   - `tamapoke-fakepod-VERSION-full.bin` — the firmware (bootloader + partition table + app in one file)
   - `tamapoke-fakepod-VERSION-sprites.zip` — the pet pictures, for the TF card
 
+> About `-sprites.zip`: these pictures are **not made by this project**. They are the sprite pack from the upstream TamaPoke repository (`socquique/TamaPoke`, `tools/sdcard/mons`), built from PMD SpriteCollab (CC BY-NC 4.0). See `NOTICE-FAKEPOD.md` and `CREDITS.md`.
+
 ## 1. Put the pictures on the TF card
 1. Unzip `tamapoke-fakepod-VERSION-sprites.zip`. You get a folder named **`mons`** (303 files, about 41 MB).
 2. Copy the whole **`mons`** folder to the **root** of the TF card (so the card has `/mons/p001.bin` …).

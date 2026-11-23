@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "font_zh_unifont16.inc"
+#include "font_zh_aa.inc"
 #include <stdlib.h>
 
 static inline void swap16(int16_t &a, int16_t &b) { int16_t t = a; a = b; b = t; }
@@ -214,6 +215,22 @@ static const ZhGlyph *zhFind(uint32_t cp)
     return nullptr;
 }
 static const int ZH_BASE = 14;
+int Arduino_Canvas::zhKind() const { return font_ == fp_font_zh_tc ? 1 : font_ == fp_font_zh_sc ? 2 : 0; }
+static const AaGlyph *aaFind(int kind, uint32_t cp, const uint8_t **data)
+{
+    const AaGlyph *tab = kind == 1 ? AA_TC : AA_SC;
+    int n = kind == 1 ? (int)(sizeof AA_TC / sizeof AA_TC[0]) : (int)(sizeof AA_SC / sizeof AA_SC[0]);
+    *data = kind == 1 ? AA_TC_DATA : AA_SC_DATA;
+    int lo = 0, hi = n - 1;
+    while (lo <= hi) { int m = (lo + hi) / 2; if (tab[m].cp == cp) return &tab[m]; if (tab[m].cp < cp) lo = m + 1; else hi = m - 1; }
+    return nullptr;
+}
+static inline uint16_t blend565(uint16_t bg, uint16_t fg, int a)   // a = 0..3 (coverage), a == 3 is the solid colour
+{
+    if (a >= 3) return fg;
+    const int br = bg >> 11, bgc = (bg >> 5) & 63, bb = bg & 31, fr = fg >> 11, fgc = (fg >> 5) & 63, fb = fg & 31;
+    return (uint16_t)((((br * (3 - a) + fr * a) / 3) << 11) | (((bgc * (3 - a) + fgc * a) / 3) << 5) | ((bb * (3 - a) + fb * a) / 3));
+}
 // UTF-8 -> code point, one byte at a time; returns true when `cp` is complete
 static bool utf8Step(uint8_t b, uint32_t &pend, int &need, uint32_t &cp)
 {
@@ -233,7 +250,27 @@ void Arduino_Canvas::writeCjk(uint8_t b)
     if (!utf8Step(b, pend_, need_, cp)) return;
     if (cp == '\n') { cx_ = 0; cy_ += sy_ * 16; return; }
     if (cp == '\r') return;
-    const ZhGlyph *g = (font_ == fp_font_zh_unifont16) ? zhFind(cp) : nullptr;
+    const int kind = zhKind();
+    if (kind && sx_ == 1 && sy_ == 1 && !small_) {         // body text: anti-aliased Noto glyphs
+        const uint8_t *data;
+        const AaGlyph *a = aaFind(kind, cp, &data);
+        const int adv = a ? a->adv : (cp < 0x80 ? 11 : AA_EM);
+        if (wrap_ && cx_ + adv > w_) { cx_ = 0; cy_ += AA_EM + 4; }
+        if (a && a->w) {
+            const uint8_t *p = data + a->off;
+            const int x0 = cx_ + a->xo, y0 = cy_ + a->yo + AA_DY;
+            for (int r = 0; r < a->h; r++)
+                for (int c = 0; c < a->w; c++) {
+                    const int i = r * a->w + c, v = (p[i >> 2] >> (6 - 2 * (i & 3))) & 3;
+                    if (!v) continue;
+                    const int x = x0 + c, y = y0 + r;
+                    if ((uint16_t)x < (uint16_t)w_ && (uint16_t)y < (uint16_t)h_) fb_[(int32_t)y * w_ + x] = blend565(fb_[(int32_t)y * w_ + x], fg_, v);
+                }
+        }
+        cx_ += adv;
+        return;
+    }
+    const ZhGlyph *g = kind ? zhFind(cp) : nullptr;
     const int adv = g ? g->adv : (cp < 0x80 ? 8 : 16);
     if (wrap_ && cx_ + adv * sx_ > w_) { cx_ = 0; cy_ += sy_ * 16; }
     if (g) {
@@ -256,7 +293,21 @@ void Arduino_Canvas::cjkBounds(const char *s, int16_t x, int16_t y, int16_t *x1,
         if (!utf8Step(*p, pend, need, cp)) continue;
         if (cp == '\n') { x = 0; y += sy_ * 16; continue; }
         if (cp == '\r') continue;
-        const ZhGlyph *g = (font_ == fp_font_zh_unifont16) ? zhFind(cp) : nullptr;
+        const int kind = zhKind();
+        if (kind && sx_ == 1 && sy_ == 1 && !small_) {
+            const uint8_t *data;
+            const AaGlyph *a = aaFind(kind, cp, &data);
+            if (a && a->w) {
+                const int gx0 = x + a->xo, gx1 = gx0 + a->w - 1, gy0 = y + a->yo + AA_DY, gy1 = gy0 + a->h - 1;
+                if (gx0 < minx) minx = gx0;
+                if (gx1 > maxx) maxx = gx1;
+                if (gy0 < miny) miny = gy0;
+                if (gy1 > maxy) maxy = gy1;
+            }
+            x += a ? a->adv : (cp < 0x80 ? 11 : AA_EM);
+            continue;
+        }
+        const ZhGlyph *g = kind ? zhFind(cp) : nullptr;
         const int adv = g ? g->adv : (cp < 0x80 ? 8 : 16);
         if (g && (g->x1 >= g->x0) && !(g->x0 == 0 && g->x1 == 0 && g->y0 == 0 && g->y1 == 0)) {
             const int gx0 = x + g->x0 * sx_, gx1 = x + (g->x1 + 1) * sx_ - 1;
@@ -313,4 +364,5 @@ void Arduino_CO5300::setBrightness(uint8_t v) { fp_display_brightness(v); }
 void Arduino_CO5300::displayOn() { fp_display_on(255); }
 void Arduino_CO5300::displayOff() { fp_display_off(); }
 
-const uint8_t fp_font_zh_unifont16[1] = {0};   // identity token for setFont(); the glyph data is ZH_GLYPHS
+const uint8_t fp_font_zh_tc[1] = {0};   // identity tokens for setFont(); the glyph data are ZH_GLYPHS (Unifont, scaled) and AA_TC / AA_SC (Noto, body text)
+const uint8_t fp_font_zh_sc[1] = {0};

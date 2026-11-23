@@ -54,6 +54,7 @@ public:
     void setTextWrap(bool w) { wrap_ = w; }
     void setFont() { font_ = nullptr; }                 // back to the classic 5x7
     void setFont(const uint8_t *f) { font_ = f; }       // a CJK font: fp_font_zh_unifont16 is the only one with glyphs; the Japanese / Korean ones draw blanks
+    void setCjkSmall(bool s) { small_ = s; }  // logical text size 1: keep the 16 px Unifont glyphs instead of the 22 px body font
     void setUTF8Print(bool b) { utf8_ = b; pend_ = 0; need_ = 0; }
     void getTextBounds(const char *s, int16_t x, int16_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
     size_t write(uint8_t c);
@@ -65,13 +66,14 @@ private:
     void fillEllipse(int32_t x, int32_t y, int32_t rx, int32_t ry, uint8_t corners, int16_t delta, uint16_t c);
     void drawChar(int16_t x, int16_t y, uint8_t ch);
     bool cjk() const { return font_ != nullptr && utf8_; }
+    int zhKind() const;                       // 0 = a font without glyphs (Japanese / Korean), 1 = Traditional, 2 = Simplified
     void writeCjk(uint8_t b);
     void cjkBounds(const char *s, int16_t x, int16_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
     void charBounds(uint8_t ch, int16_t *x, int16_t *y, int16_t *minx, int16_t *miny, int16_t *maxx, int16_t *maxy);
     int16_t w_, h_, cx_ = 0, cy_ = 0;
     uint16_t fg_ = 0xFFFF, bg_ = 0xFFFF;
     uint8_t sx_ = 1, sy_ = 1;
-    bool wrap_ = true, utf8_ = false;
+    bool wrap_ = true, utf8_ = false, small_ = false;
     const uint8_t *font_ = nullptr;
     uint32_t pend_ = 0; int need_ = 0;     // UTF-8 decoder state
     uint16_t *fb_ = nullptr;

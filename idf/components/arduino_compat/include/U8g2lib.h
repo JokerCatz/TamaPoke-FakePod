@@ -5,4 +5,5 @@
 extern const uint8_t u8g2_font_unifont_t_japanese3[];
 extern const uint8_t u8g2_font_unifont_t_korean2[];
 // our own: the Traditional Chinese subset of GNU Unifont 16 (gfx_compat). Selected like the others, with setFont().
-extern const uint8_t fp_font_zh_unifont16[];
+extern const uint8_t fp_font_zh_tc[];   // Traditional Chinese (body text: Noto Sans CJK TC 22 px anti-aliased; bigger text: Unifont scaled)
+extern const uint8_t fp_font_zh_sc[];   // Simplified Chinese (same, Noto Sans CJK SC)

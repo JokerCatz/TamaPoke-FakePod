@@ -11,6 +11,8 @@
   - `tamapoke-fakepod-版本-full.bin`：固件（bootloader、分区表、程序合并为一个文件）
   - `tamapoke-fakepod-版本-sprites.zip`：宠物图片，放在 TF 卡里
 
+> 关于 `-sprites.zip`：这些图片**不是本项目制作的**，是上游 TamaPoke 项目（`socquique/TamaPoke`，`tools/sdcard/mons`）附带的精灵图包，来源是 PMD SpriteCollab（CC BY-NC 4.0）。详见 `NOTICE-FAKEPOD.md` 与 `CREDITS.md`。
+
 ## 1. 把图片放进 TF 卡
 1. 解压 `tamapoke-fakepod-版本-sprites.zip`，会得到一个名为 **`mons`** 的文件夹（303 个文件，约 41 MB）。
 2. 把整个 **`mons`** 文件夹复制到 TF 卡的**根目录**（卡上会有 `/mons/p001.bin` 等文件）。

@@ -11,6 +11,8 @@
   - `tamapoke-fakepod-版本-full.bin`：韌體（bootloader、分割表、程式合成一個檔）
   - `tamapoke-fakepod-版本-sprites.zip`：寵物圖片，放在 TF 卡
 
+> 關於 `-sprites.zip`：這些圖片**不是本專案製作的**，是上游 TamaPoke 專案（`socquique/TamaPoke`，`tools/sdcard/mons`）附的精靈圖包，來源是 PMD SpriteCollab（CC BY-NC 4.0）。詳見 `NOTICE-FAKEPOD.md` 與 `CREDITS.md`。
+
 ## 1. 把圖片放進 TF 卡
 1. 解壓縮 `tamapoke-fakepod-版本-sprites.zip`，會得到一個名為 **`mons`** 的資料夾（303 個檔案，約 41 MB）。
 2. 把整個 **`mons`** 資料夾複製到 TF 卡的**根目錄**（卡上會有 `/mons/p001.bin` 等檔案）。
