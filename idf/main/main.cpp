@@ -2,6 +2,8 @@
 // TamaPoke-FakePod, step 1: bring the panel up, draw a test pattern, and prove the upstream game logic (pet.cpp, i18n.cpp) links.
 #include <stdio.h>
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "nvs_flash.h"
 #include "fp_display.h"
 #include "fp_pins.h"
@@ -24,4 +26,11 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(fp_display_flush());
     ESP_ERROR_CHECK(fp_display_brightness(160));
     ESP_LOGI(TAG, "panel up, test pattern drawn; Pet is %u bytes", (unsigned)sizeof(Pet));
+    /* OLED: never leave a picture lit. 10 s on, off, a wake test after 5 s (proves the soft-wake path), 10 s on, off for good. */
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    ESP_LOGI(TAG, "off: %s", esp_err_to_name(fp_display_off()));
+    vTaskDelay(pdMS_TO_TICKS(5000));
+    ESP_LOGI(TAG, "wake: %s", esp_err_to_name(fp_display_on(160)));
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    ESP_LOGI(TAG, "off for good: %s", esp_err_to_name(fp_display_off()));
 }

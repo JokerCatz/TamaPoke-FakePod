@@ -20,6 +20,7 @@ static esp_lcd_panel_handle_t s_panel;
 static uint16_t *s_fb;          /* PSRAM canvas */
 static uint16_t *s_bounce;      /* internal DMA row chunk, byte-swapped */
 static SemaphoreHandle_t s_done;
+static bool s_on;
 
 static bool on_done(esp_lcd_panel_io_handle_t io, esp_lcd_panel_io_event_data_t *ed, void *ctx)
 {
@@ -58,6 +59,7 @@ esp_err_t fp_display_init(void)
     ESP_RETURN_ON_ERROR(fp_co5300_new(s_io, FP_PIN_LCD_RST, FP_LCD_X_GAP, &s_panel), TAG, "co5300");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_reset(s_panel), TAG, "reset");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_init(s_panel), TAG, "init");
+    s_on = true;
     return ESP_OK;
 }
 
@@ -78,3 +80,29 @@ esp_err_t fp_display_flush(void)
 }
 
 esp_err_t fp_display_brightness(uint8_t v) { return fp_co5300_cmd(s_panel, 0x51, &v, 1); }
+
+bool fp_display_is_on(void) { return s_on; }
+
+esp_err_t fp_display_off(void)
+{
+    ESP_RETURN_ON_FALSE(s_panel, ESP_ERR_INVALID_STATE, TAG, "not initialised");
+    if (!s_on) return ESP_OK;
+    const uint8_t z = 0;
+    ESP_RETURN_ON_ERROR(fp_co5300_cmd(s_panel, 0x51, &z, 1), TAG, "bright 0");
+    ESP_RETURN_ON_ERROR(fp_co5300_cmd(s_panel, 0x28, NULL, 0), TAG, "dispoff");
+    ESP_RETURN_ON_ERROR(fp_co5300_cmd(s_panel, 0x10, NULL, 0), TAG, "sleep in");
+    vTaskDelay(pdMS_TO_TICKS(10));
+    s_on = false;
+    return ESP_OK;
+}
+
+esp_err_t fp_display_on(uint8_t brightness)
+{
+    ESP_RETURN_ON_FALSE(s_panel, ESP_ERR_INVALID_STATE, TAG, "not initialised");
+    if (!s_on) {
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_init(s_panel), TAG, "wake init");   /* 0x11 + 120 ms + the table, brightness 0, panel RAM black */
+        s_on = true;
+        ESP_RETURN_ON_ERROR(fp_display_flush(), TAG, "wake flush");           /* the picture first, then the light */
+    }
+    return fp_display_brightness(brightness);
+}
