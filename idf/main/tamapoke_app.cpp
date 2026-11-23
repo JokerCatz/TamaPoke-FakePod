@@ -2346,7 +2346,12 @@ void clockTap(int16_t x, int16_t y) {
       return;
     }
     if (x >= LANG_PILL_X && x < LANG_PILL_X + LANG_PILL_W) {  // cicla idioma
-      setLang((Lang)((gLang + 1) % LANG_COUNT));
+      Lang nl = (Lang)((gLang + 1) % LANG_COUNT);
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+      // the Japanese / Korean fonts are not ported (their text would be blank): the pill skips them
+      while (nl == LANG_JA || nl == LANG_KO) nl = (Lang)((nl + 1) % LANG_COUNT);
+#endif
+      setLang(nl);
       applyLangFont();  // la fuente cambia con el idioma
       sfxPlay(SFX_TAP);
       return;

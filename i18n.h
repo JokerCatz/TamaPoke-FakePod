@@ -10,7 +10,11 @@ enum Lang : uint8_t { LANG_ES = 0, LANG_EN, LANG_FR, LANG_DE, LANG_IT, LANG_PT,
                      LANG_JA, LANG_KO, LANG_NL, LANG_ZH, LANG_COUNT };  // LANG_ZH = Traditional Chinese (Taiwan)
 // idiomas que necesitan una fuente U8g2 y texto UTF-8 en vez de la tabla CP437
 #define LANG_IS_CJK(l) ((l) == LANG_JA || (l) == LANG_KO || (l) == LANG_ZH)
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+#define LANG_DEFAULT LANG_ZH  // Fake Pod build: Traditional Chinese by default
+#else
 #define LANG_DEFAULT LANG_EN  // idioma por defecto: ingles
+#endif
 
 extern Lang gLang;  // idioma activo (definido en i18n.cpp)
 
