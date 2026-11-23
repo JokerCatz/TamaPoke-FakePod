@@ -44,6 +44,7 @@
 #define TP_INT 45
 #define TP_RESET 46
 #define LCD_RESET 36
+#define FP_PANEL_OFF_MS 120000UL  // OLED: really off after this long without a touch (2 min while developing; power.h's DIM_OFF stage is 5 min)
 #define LCD_CS 37             // QSPI display (constructor arguments of the unused-here Arduino bus object)
 #define LCD_SCLK 38
 #define LCD_SDIO0 39

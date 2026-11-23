@@ -90,16 +90,17 @@ public:
 };
 
 struct SerialShim {
-    void begin(unsigned long) {}
+    void begin(unsigned long);                    // IDF: installs the USB-Serial/JTAG driver (so the host can write to us) and routes stdout through it
     void setRxBufferSize(size_t) {}
     void setTxTimeoutMs(uint32_t) {}
-    void setTimeout(uint32_t) {}
+    void setTimeout(uint32_t ms) { timeout_ms = ms; }
     int printf(const char *fmt, ...) __attribute__((format(printf, 2, 3)));
     void println(const char *s = "") { ::printf("%s\n", s); }
     void print(const char *s) { ::printf("%s", s); }
-    int available() { return 0; }          // USB-CDC upload protocol: not wired yet
-    String readStringUntil(char) { return String(); }
-    size_t readBytes(uint8_t *, size_t) { return 0; }
+    int available();                              // bytes waiting from the host
+    String readStringUntil(char term);            // up to `term` or the timeout
+    size_t readBytes(uint8_t *buf, size_t n);     // up to n bytes or the timeout
+    uint32_t timeout_ms = 1000;
 };
 extern SerialShim Serial;
 

@@ -601,11 +601,11 @@ void ensureMon() {
 }
 
 
-// OLED: never left lit. After 5 minutes without a touch (power.h DIM_OFF) the panel really goes off (brightness 0, DISPOFF, SLEEP IN: upstream's last stage is only
+// OLED: never left lit. After FP_PANEL_OFF_MS without a touch (board.h) the panel really goes off (brightness 0, DISPOFF, SLEEP IN: upstream's last stage is only
 // brightness 8), and the next touch wakes it. Drawing is skipped while it is off.
 static bool fpPanelOff = false;
 void fpPanelPolicy(uint32_t now) {
-  bool want = screenOff || dimStageFor(idleSince(now, lastInteract)) == DIM_OFF;
+  bool want = screenOff || idleSince(now, lastInteract) >= FP_PANEL_OFF_MS;
   if (want && !fpPanelOff) {
     panel->displayOff();
     fpPanelOff = true;
