@@ -310,6 +310,36 @@ static const char *const STRINGS[LANG_COUNT][STR_COUNT] = {
     "Geen sprites", "Zet ze op de SD",
     "Houd: stop",
   },
+  // ---------------- ZH (繁體中文，台灣用語) ----------------
+  {
+    "進化中！", "好好吃！", "牠很喜歡！", "牠肚子餓了！", "該洗澡了！",
+    "累壞了……", "牠很難過……", "有點胖胖的……", "是異色寶可夢！！", "牠很開心",
+    "謝謝你！再見了", "牠跑走了……", "再見！揮手道別……",
+    "蛋", "傳說的蛋！？", "稀有的蛋！", "點一下蛋……", "動了！", "快孵化了！",
+    "圖鑑 %u/151",
+    "%s%s Lv.%u",
+    "要放生%s嗎？", "是", "否",
+    "擊中 %u 次", "力量 +%u", "新紀錄！", "最佳：%u", "快打！",
+    "得分：%u", "好開心！", "+心情",
+    "設定時間", "時", "分", "上滑：取消", "語言",
+    "獲得勳章！", "太棒了！", "連續 %u 天！",
+    "連續 %u 天　最高 %u", "親密", "樹果 ???", "紅色樹果", "藍色樹果", "綠色樹果",
+    "%s　年齡 %lu 天", "點名字：改名",
+    "對戰", "攻擊", "防禦", "速度", "體重", "訓練力量",
+    "勳章 %d/%d", "點一下：返回",
+    "名字：", "點一下返回",
+    "飽食", "心情", "體力", "清潔",
+    "最佳 %u",
+    "成長", "Lv.%u", "%u 分後 Lv.%u", "進化", "最終型態",
+    "可以進化了！", "全部需求 40 以上才能進化",
+    "再 %u 級進化", "失誤：%u",
+    "音效 開", "音效 關",
+    "進化！", "%s有話想對你說……", "%s覺得被拋棄了……",
+    "要進化嗎？", "維持型態", "要道別嗎？", "道別", "繼續相伴",
+    "選擇你的夥伴",
+    "沒有精靈圖", "請放進 SD 卡",
+    "長按離開",
+  },
 };
 
 // Nombres de medalla en sus tres longitudes [idioma][medalla].
@@ -323,6 +353,7 @@ static const char *const MED_NAME[LANG_COUNT][MED_COUNT] = {
   { "Lv.10", "Lv.25", "Lv.50", "きのみ", "7にち", "なかよし", "さいしゅう", "げんき" },
   { "Lv.10", "Lv.25", "Lv.50", "열매", "연속 7일", "유대", "최고 컨디션", "건강함" },
   { "Lv.10", "Lv.25", "Lv.50", "BES", "7 DAGEN", "BAND", "TOPVORM", "FIT" },
+  { "Lv.10", "Lv.25", "Lv.50", "樹果", "連續7天", "親密", "最終型態", "健康" },
 };
 static const char *const MED_LBL[LANG_COUNT][MED_COUNT] = {
   { "Nv10", "Nv25", "Nv50", "BAYA", "7DIAS", "VINC", "TOPE", "SANO" },
@@ -334,6 +365,7 @@ static const char *const MED_LBL[LANG_COUNT][MED_COUNT] = {
   { "Lv10", "Lv25", "Lv50", "きのみ", "7にち", "なかよし", "しんか", "げんき" },
   { "Lv10", "Lv25", "Lv50", "열매", "7일", "유대", "최고", "건강" },
   { "Lv10", "Lv25", "Lv50", "BES", "7DAG", "BAND", "TOP", "FIT" },
+  { "Lv10", "Lv25", "Lv50", "樹果", "7天", "親密", "最終", "健康" },
 };
 static const char *const MED_DSC[LANG_COUNT][MED_COUNT] = {
   { "NIVEL 10", "NIVEL 25", "NIVEL 50", "BAYA HALLADA",
@@ -354,6 +386,8 @@ static const char *const MED_DSC[LANG_COUNT][MED_COUNT] = {
     "연속 7일", "유대감 최대", "최종 진화", "건강함" },
   { "LEVEL 10", "LEVEL 25", "LEVEL 50", "BES GEVONDEN",
     "7 DAGEN OP RIJ", "MAX BAND", "EINDVORM", "IN VORM" },
+  { "等級 10", "等級 25", "等級 50", "找到樹果",
+    "連續 7 天", "親密度最高", "最終型態", "身體健康" },
 };
 
 const char *T(StrId id) { return STRINGS[gLang][id]; }

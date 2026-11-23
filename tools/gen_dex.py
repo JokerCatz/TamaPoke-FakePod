@@ -75,7 +75,7 @@ def main():
         "// Nombres oficiales por idioma. FR y DE son los unicos latinos que difieren\n"
         "// del ingles en gen 1 (ES/IT/PT usan el de DEX_TBL); JA y KO van en UTF-8,\n"
         "// que se pinta con la fuente U8g2. nullptr = sin nombre propio.\n")
-    for lg in ('fr', 'de', 'ja', 'ko'):
+    for lg in ('fr', 'de', 'ja', 'ko', 'zh'):
         out.append(f"static const char *const DEX_NAME_{lg.upper()}[DEX_COUNT + 1] = {{\n")
         fila = []
         for num in range(0, 152):
@@ -96,6 +96,7 @@ def main():
         "                  : (gLang == LANG_DE) ? DEX_NAME_DE[dex]\n"
         "                  : (gLang == LANG_JA) ? DEX_NAME_JA[dex]\n"
         "                  : (gLang == LANG_KO) ? DEX_NAME_KO[dex]\n"
+        "                  : (gLang == LANG_ZH) ? DEX_NAME_ZH[dex]\n"
         "                                       : nullptr;\n"
         "  return n ? n : DEX_TBL[dex].name;\n"
         "}\n\n")
