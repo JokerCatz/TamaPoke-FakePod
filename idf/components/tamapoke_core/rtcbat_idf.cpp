@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 // Software clock + no battery reading for now (the PCF85063 / AXP2101 reads come next; the AXP2101 stays read-only).
 #include "rtcbat.h"
+#include "fp_keys.h"
 #include <time.h>
 static uint32_t g_offset = 0;
 bool rtcBegin() { return true; }
@@ -16,5 +17,5 @@ bool batShouldShutdown() { return false; }
 void batPowerOff() {}
 bool usbPresent() { return true; }
 bool usbPresentNow() { return true; }
-void pwrSetup() {}
-bool pwrShortPressed() { return false; }
+void pwrSetup() { fp_keys_init(); }                 // both side keys: a short press of either is latched by a small task
+bool pwrShortPressed() { return fp_keys_take_short(); }

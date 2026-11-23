@@ -28,3 +28,8 @@
 #define FP_PIN_TP_INT 45
 #define FP_PIN_TP_RST 46
 #define FP_I2C_ADDR_TOUCH 0x15
+/* Keys: the top one is the AXP2101 power key (no GPIO: its edges arrive as PMU interrupts, nIRQ on GPIO49, read over I2C); the bottom one is BOOTMODE, GPIO61
+ * (a strapping pin: input only, no internal pull, the board's 10k pull-up, pressed = low; NEVER hold it while the chip resets: that enters the download mode). */
+#define FP_PIN_PMU_IRQ 49
+#define FP_PIN_KEY_BOTTOM 61
+#define FP_I2C_ADDR_PMU 0x34

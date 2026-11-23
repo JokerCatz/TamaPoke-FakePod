@@ -7,14 +7,10 @@
 // con strlen(t)*6 y un caracter de dos bytes descuadraria las etiquetas.
 // No estan en CP437: las mayusculas acentuadas salvo E (\220), ni a~/o~ del portugues.
 enum Lang : uint8_t { LANG_ES = 0, LANG_EN, LANG_FR, LANG_DE, LANG_IT, LANG_PT,
-                     LANG_JA, LANG_KO, LANG_NL, LANG_ZH, LANG_COUNT };  // LANG_ZH = Traditional Chinese (Taiwan)
+                     LANG_JA, LANG_KO, LANG_NL, LANG_ZH, LANG_ZHS, LANG_COUNT };  // LANG_ZH = Traditional Chinese (Taiwan), LANG_ZHS = Simplified Chinese
 // idiomas que necesitan una fuente U8g2 y texto UTF-8 en vez de la tabla CP437
-#define LANG_IS_CJK(l) ((l) == LANG_JA || (l) == LANG_KO || (l) == LANG_ZH)
-#if defined(BOARD_FAKEPOD_NANO_PRO)
-#define LANG_DEFAULT LANG_ZH  // Fake Pod build: Traditional Chinese by default
-#else
+#define LANG_IS_CJK(l) ((l) == LANG_JA || (l) == LANG_KO || (l) == LANG_ZH || (l) == LANG_ZHS)
 #define LANG_DEFAULT LANG_EN  // idioma por defecto: ingles
-#endif
 
 extern Lang gLang;  // idioma activo (definido en i18n.cpp)
 
@@ -73,5 +69,6 @@ const char *medalName(int i);  // banner de medalla (MED_COUNT)
 const char *medalLabel(int i); // etiqueta corta de medalla
 const char *medalDesc(int i);  // descripcion larga de medalla
 
+bool langSaved();            // true once a language has been chosen and stored (false on a fresh device: the first screen asks)
 void loadLang();             // lee el idioma de NVS (llamar en setup)
 void setLang(Lang l);        // cambia y persiste el idioma

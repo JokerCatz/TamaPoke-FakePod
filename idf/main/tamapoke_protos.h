@@ -35,6 +35,8 @@ int sceneHour();
 void drawClouds(uint32_t now, uint16_t col);
 void drawScene(uint8_t biome, uint32_t now, bool night);
 static inline void fillBackdrop(uint16_t colour);
+void renderLangPick();
+bool langPickTap(int16_t x, int16_t y);
 void renderStarterSelect();
 void setSize(uint8_t n);
 void setCur(int x, int y);

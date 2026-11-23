@@ -14,7 +14,7 @@ import time
 import unicodedata
 
 LANGS = ('fr', 'de')
-LANGS_UTF8 = ('ja-hrkt', 'ko', 'zh-hant')  # CJK: van tal cual en UTF-8, no en octal ASCII
+LANGS_UTF8 = ('ja-hrkt', 'ko', 'zh-hant', 'zh-hans')  # CJK: van tal cual en UTF-8, no en octal ASCII
 
 # Convencion de genero por idioma: ni la tabla CP437 ni ningun subconjunto
 # unifont de U8g2 traen ♀/♂, asi que cada idioma elige con que los sustituye.
@@ -76,7 +76,7 @@ def main():
             if v:
                 # 'ja-hrkt' -> 'ja'; el UTF-8 se respeta salvo ♀/♂, que la
                 # fuente no tiene (ver sin_genero)
-                corto = lg.split('-')[0]
+                corto = {'zh-hant': 'zh', 'zh-hans': 'zh_hans'}.get(lg, lg.split('-')[0])  # zh = Traditional (Taiwan), zh_hans = Simplified
                 dif[corto] = sin_genero(v, corto)
         if dif:
             out[num] = dif

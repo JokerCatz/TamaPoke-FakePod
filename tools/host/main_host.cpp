@@ -12,6 +12,7 @@ void setup();
 bool render();
 extern Arduino_Canvas *gfx;
 extern Pet pet;
+extern bool gLangPick;
 extern bool cardOpen, galleryOpen, clockOpen, gameOpen, kbOpen, screenKeyValid;
 extern uint8_t cardPage, choiceKind;
 extern uint32_t choiceUntil;
@@ -31,7 +32,7 @@ static void shot(const char *dir, const char *lang, const char *name)
     for (int i = 0; i < 460 * 460; i++) { uint16_t p = fb[i]; fputc(((p >> 11) & 31) * 255 / 31, f); fputc(((p >> 5) & 63) * 255 / 63, f); fputc((p & 31) * 255 / 31, f); }
     fclose(f);
 }
-static void reset_ui() { cardOpen = galleryOpen = clockOpen = gameOpen = kbOpen = false; cardPage = 0; choiceKind = 0; galleryDetail = 0; }
+static void reset_ui() { gLangPick = false; cardOpen = galleryOpen = clockOpen = gameOpen = kbOpen = false; cardPage = 0; choiceKind = 0; galleryDetail = 0; }
 
 int main(int argc, char **argv)
 {
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
     pet.starterPick = false;
     pet.speciesId = 25; pet.ageMinutes = 60 * 30; pet.streak = 5; pet.bestStreak = 9; pet.bond = 120; pet.medals = 0x2F; pet.totalMedals = 12;
     strcpy(pet.nick, "");
-    static const struct { Lang l; const char *tag; } L[] = { {LANG_EN, "en"}, {LANG_DE, "de"}, {LANG_ES, "es"}, {LANG_JA, "ja"}, {LANG_ZH, "zh"} };
+    static const struct { Lang l; const char *tag; } L[] = { {LANG_EN, "en"}, {LANG_DE, "de"}, {LANG_ES, "es"}, {LANG_JA, "ja"}, {LANG_ZH, "zh"}, {LANG_ZHS, "zhs"} };
     for (auto &x : L) {
         setLang(x.l); applyLangFont();
         reset_ui(); shot(dir, x.tag, "main");
@@ -50,6 +51,7 @@ int main(int argc, char **argv)
         reset_ui(); startGame(); shot(dir, x.tag, "game");
         reset_ui(); pet.starterPick = true; shot(dir, x.tag, "starter"); pet.starterPick = false;
     }
+    gLangPick = true; setLang(LANG_EN); applyLangFont(); shot(dir, "en", "langpick"); gLangPick = false;
     printf("done\n");
     return 0;
 }

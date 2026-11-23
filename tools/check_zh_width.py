@@ -8,7 +8,7 @@ import ast, test_i18n_formats as T
 SPEC = T.SPEC_RE
 def width(s, lang):
     s = SPEC.sub('000', s)
-    cjk = lang in ('JA', 'KO', 'ZH')
+    cjk = lang in ('JA', 'KO', 'ZH', 'ZHS')
     w = 0
     for ch in s:
         full = unicodedata.east_asian_width(ch) in ('W', 'F')
@@ -23,8 +23,8 @@ def main():
     zi = T.LANGS.index('ZH')
     for k, sid in enumerate(ids):
         ws = {l: width(rows[i][k], l) for i, l in enumerate(T.LANGS)}
-        budget = max(v for l, v in ws.items() if l != 'ZH')
-        z = ws['ZH']
+        budget = max(v for l, v in ws.items() if not l.startswith('ZH'))
+        z = max(ws['ZH'], ws['ZHS'])
         if z > budget: bad += 1; print(f'OVER   {sid:18} zh={z}px > widest other={budget}px  {rows[zi][k]!r}')
         elif z > budget * 0.9: tight += 1
     print(f'{len(ids)} strings: {bad} over budget, {tight} within 10% of it')

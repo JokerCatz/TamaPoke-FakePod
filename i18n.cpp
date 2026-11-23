@@ -340,6 +340,36 @@ static const char *const STRINGS[LANG_COUNT][STR_COUNT] = {
     "沒有精靈圖", "請放進 SD 卡",
     "長按離開",
   },
+  // ---------------- ZH-Hans (简体中文) ----------------
+  {
+    "进化中！", "好好吃！", "它很喜欢！", "它肚子饿了！", "该洗澡了！",
+    "累坏了……", "它很难过……", "有点胖乎乎的……", "是闪光宝可梦！！", "它很开心",
+    "谢谢你！再见了", "它跑掉了……", "再见！挥手告别……",
+    "蛋", "传说中的蛋！？", "稀有的蛋！", "点一下蛋……", "动了！", "快孵化了！",
+    "图鉴 %u/151",
+    "%s%s Lv.%u",
+    "要放生%s吗？", "是", "否",
+    "击中 %u 次", "力量 +%u", "新纪录！", "最佳：%u", "快打！",
+    "得分：%u", "好开心！", "+心情",
+    "设置时间", "时", "分", "上滑：取消", "语言",
+    "获得勋章！", "太棒了！", "连续 %u 天！",
+    "连续 %u 天　最高 %u", "亲密", "树果 ???", "红色树果", "蓝色树果", "绿色树果",
+    "%s　年龄 %lu 天", "点名字：改名",
+    "对战", "攻击", "防御", "速度", "体重", "训练力量",
+    "勋章 %d/%d", "点一下：返回",
+    "名字：", "点一下返回",
+    "饱食", "心情", "体力", "清洁",
+    "最佳 %u",
+    "成长", "Lv.%u", "%u 分钟后 Lv.%u", "进化", "最终形态",
+    "可以进化了！", "全部需求 40 以上才能进化",
+    "再 %u 级进化", "失误：%u",
+    "音效 开", "音效 关",
+    "进化！", "%s有话想对你说……", "%s觉得被抛弃了……",
+    "要进化吗？", "保持形态", "要告别吗？", "告别", "继续相伴",
+    "选择你的伙伴",
+    "没有精灵图", "请放进 SD 卡",
+    "长按退出",
+  },
 };
 
 // Nombres de medalla en sus tres longitudes [idioma][medalla].
@@ -354,6 +384,7 @@ static const char *const MED_NAME[LANG_COUNT][MED_COUNT] = {
   { "Lv.10", "Lv.25", "Lv.50", "열매", "연속 7일", "유대", "최고 컨디션", "건강함" },
   { "Lv.10", "Lv.25", "Lv.50", "BES", "7 DAGEN", "BAND", "TOPVORM", "FIT" },
   { "Lv.10", "Lv.25", "Lv.50", "樹果", "連續7天", "親密", "最終型態", "健康" },
+  { "Lv.10", "Lv.25", "Lv.50", "树果", "连续7天", "亲密", "最终形态", "健康" },
 };
 static const char *const MED_LBL[LANG_COUNT][MED_COUNT] = {
   { "Nv10", "Nv25", "Nv50", "BAYA", "7DIAS", "VINC", "TOPE", "SANO" },
@@ -366,6 +397,7 @@ static const char *const MED_LBL[LANG_COUNT][MED_COUNT] = {
   { "Lv10", "Lv25", "Lv50", "열매", "7일", "유대", "최고", "건강" },
   { "Lv10", "Lv25", "Lv50", "BES", "7DAG", "BAND", "TOP", "FIT" },
   { "Lv10", "Lv25", "Lv50", "樹果", "7天", "親密", "最終", "健康" },
+  { "Lv10", "Lv25", "Lv50", "树果", "7天", "亲密", "最终", "健康" },
 };
 static const char *const MED_DSC[LANG_COUNT][MED_COUNT] = {
   { "NIVEL 10", "NIVEL 25", "NIVEL 50", "BAYA HALLADA",
@@ -388,12 +420,22 @@ static const char *const MED_DSC[LANG_COUNT][MED_COUNT] = {
     "7 DAGEN OP RIJ", "MAX BAND", "EINDVORM", "IN VORM" },
   { "等級 10", "等級 25", "等級 50", "找到樹果",
     "連續 7 天", "親密度最高", "最終型態", "身體健康" },
+  { "等级 10", "等级 25", "等级 50", "找到树果",
+    "连续 7 天", "亲密度最高", "最终形态", "身体健康" },
 };
 
 const char *T(StrId id) { return STRINGS[gLang][id]; }
 const char *medalName(int i)  { return MED_NAME[gLang][i]; }
 const char *medalLabel(int i) { return MED_LBL[gLang][i]; }
 const char *medalDesc(int i)  { return MED_DSC[gLang][i]; }
+
+bool langSaved() {
+  Preferences p;
+  p.begin("tamapoke", true);
+  bool has = p.isKey("lang");
+  p.end();
+  return has;
+}
 
 void loadLang() {
   Preferences p;

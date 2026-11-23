@@ -297,6 +297,8 @@ uint32_t sdEpoch = 0;  // +1 cada vez que se recarga la SD (las miniaturas cambi
 // proteccion del AMOLED: atenuado por inactividad
 uint32_t lastInteract = 0;
 uint8_t dimStage = 0;        // 0 despierto, 1 atenuado (90s), 2 casi apagado (5min)
+bool gLangPick = false;       // first-run language picker is up (Fake Pod build)
+static bool fpPanelOff = false;  // the OLED is really off (see fpPanelPolicy)
 bool swallowGesture = false; // el toque que despierta no acciona nada
 uint32_t holdStart = 0;     // pulsacion larga sobre el bicho
 uint32_t confirmUntil = 0;  // dialogo "soltar?" activo hasta este millis
@@ -431,8 +433,14 @@ void pollPwrButton() {
   if (now - lastPwr > 250) {
     lastPwr = now;
     if (pwrShortPressed()) {
+#if defined(BOARD_FAKEPOD_NANO_PRO)
+      // either side key: sleep when the screen is lit, wake when it is dark (dark = pressed off, or the idle timeout turned it off)
+      if (fpPanelOff) { screenOff = false; wakeUI(); }
+      else screenOff = true;
+#else
       screenOff = !screenOff;
       if (!screenOff) wakeUI();
+#endif
     }
   }
 #endif
@@ -468,6 +476,8 @@ void setup() {
   Serial.setTxTimeoutMs(0);
   Serial.printf("TamaPoke fw v%s (%s)\n", FW_VERSION, BOARD_NAME);
   loadLang();  // idioma guardado (ES por defecto)
+  gLangPick = !langSaved();  // a fresh device asks for the language first
+  Serial.printf("language: %s\n", gLangPick ? "not chosen yet: asking" : "already chosen");
   Wire.begin(IIC_SDA, IIC_SCL);
   // CST9217 (tactil), AXP2101 (PMU) y PCF85063 (RTC) comparten este bus I2C.
   // Red de seguridad para PMU/RTC (SensorLib NO respeta este timeout en el
@@ -603,7 +613,6 @@ void ensureMon() {
 
 // OLED: never left lit. After FP_PANEL_OFF_MS without a touch (board.h) the panel really goes off (brightness 0, DISPOFF, SLEEP IN: upstream's last stage is only
 // brightness 8), and the next touch wakes it. Drawing is skipped while it is off.
-static bool fpPanelOff = false;
 void fpPanelPolicy(uint32_t now) {
   bool want = screenOff || idleSince(now, lastInteract) >= FP_PANEL_OFF_MS;
   if (want && !fpPanelOff) {
@@ -1138,7 +1147,7 @@ void handleTouch() {
     tXl = x;
     tYl = y;
     // pulsacion larga sin moverse sobre el bicho -> dialogo de soltar
-    if (!holdFired && !swallowGesture && !galleryOpen && !cardOpen && !kbOpen && !clockOpen && millis() - tStart > 3000 &&
+    if (!holdFired && !swallowGesture && !gLangPick && !galleryOpen && !cardOpen && !kbOpen && !clockOpen && millis() - tStart > 3000 &&
         abs(tXl - tX0) < 30 && abs(tYl - tY0) < 30 && inPetZone(tX0, tY0) &&
         !pet.isEgg() && !confirmUntil && !pet.ceremony) {
       confirmUntil = millis() + 10000;
@@ -1161,7 +1170,7 @@ void handleTouch() {
 void openClock();  // prototipo
 
 void onSwipeV(int dir) {
-  if (pet.awaitingStarter()) return;  // bloqueado durante la eleccion de inicial
+  if (gLangPick || pet.awaitingStarter()) return;  // bloqueado durante la eleccion de inicial
   if (gameOpen || galleryOpen || kbOpen || sackOpen || pet.ceremony) return;
   if (clockOpen) { clockOpen = false; return; }
   if (cardOpen) {
@@ -1178,7 +1187,7 @@ void onSwipeV(int dir) {
 
 // deslizar: dir +1 = hacia la derecha
 void onSwipe(int dir) {
-  if (pet.awaitingStarter()) return;  // bloqueado durante la eleccion de inicial
+  if (gLangPick || pet.awaitingStarter()) return;  // bloqueado durante la eleccion de inicial
   if (gameOpen || kbOpen || clockOpen) return;
   if (cardOpen) {  // dentro de la ficha: cambiar entre las 4 paginas
     int p = (int)cardPage + (dir > 0 ? -1 : 1);  // izquierda avanza
@@ -1214,6 +1223,7 @@ void onSwipe(int dir) {
 }
 
 void onTap(int16_t x, int16_t y) {
+  if (gLangPick) { langPickTap(x, y); return; }
   // Serial.printf("TOUCH %d %d\n", x, y);  // diagnostico (silenciado: satura el log)
   if (pet.awaitingStarter()) {  // primera partida: elegir inicial
     for (int i = 0; i < 3; i++) {
@@ -1451,6 +1461,56 @@ static inline void fillBackdrop(uint16_t colour) {
 #endif
 }
 
+// ---------- first-run language picker (Fake Pod build): English / 繁體中文 / 简体中文 ----------
+// Shown before anything else until a language has been stored. Each label is drawn in its own script, so the font is switched per row (applyLangFont follows gLang).
+static const Lang PICK_LANG[3] = { LANG_EN, LANG_ZH, LANG_ZHS };
+static const char *const PICK_LABEL[3] = { "English", "繁體中文", "简体中文" };
+#define PICK_ROW_Y 150
+#define PICK_ROW_H 70
+#define PICK_ROW_GAP 12
+
+void renderLangPick() {
+  const Lang keep = gLang;
+  gfx->fillScreen(RGB565_BLACK);
+  fillBackdrop(UI_BG_DAY);
+  gLang = LANG_EN; applyLangFont();
+  gfx->setTextColor(UI_INK);
+  setSize(2);
+  setCur(centerX("LANGUAGE", 2), 52);
+  printT("LANGUAGE");
+  gLang = LANG_ZH; applyLangFont();
+  setSize(2);
+  setCur(centerX("語言 / 语言", 2), 88);
+  printT("語言 / 语言");
+  static const uint16_t ACC[3] = { 0x3C49, 0xEA87, 0x5CB8 };
+  for (int i = 0; i < 3; i++) {
+    int ry = PICK_ROW_Y + i * (PICK_ROW_H + PICK_ROW_GAP);
+    gfx->fillRoundRect(70 + UI_DX, ry, 326, PICK_ROW_H, 14, lerp565(ACC[i], UI_WHITE, 6, 8));
+    gfx->drawRoundRect(70 + UI_DX, ry, 326, PICK_ROW_H, 14, ACC[i]);
+    gLang = PICK_LANG[i]; applyLangFont();
+    gfx->setTextColor(UI_INK);
+    setSize(i == 0 ? 3 : 4);                       // a Chinese glyph is 16 px at size 2 and 3, 32 px at size 4: the same visual weight as English at size 3
+    setCur(centerX(PICK_LABEL[i], i == 0 ? 3 : 4), ry + 22);
+    printT(PICK_LABEL[i]);
+  }
+  gLang = keep; applyLangFont();
+  flushUI();
+}
+
+bool langPickTap(int16_t x, int16_t y) {
+  for (int i = 0; i < 3; i++) {
+    int ry = PICK_ROW_Y + i * (PICK_ROW_H + PICK_ROW_GAP);
+    if (x >= 70 + UI_DX && x <= 396 + UI_DX && y >= ry && y <= ry + PICK_ROW_H) {
+      setLang(PICK_LANG[i]);                       // stores it: the picker never comes back
+      applyLangFont();
+      gLangPick = false;
+      sfxPlay(SFX_TAP);
+      return true;
+    }
+  }
+  return false;
+}
+
 void renderStarterSelect() {
   gfx->fillScreen(RGB565_BLACK);
   fillBackdrop(UI_BG_DAY);
@@ -1549,7 +1609,7 @@ void applyLangFont() {
     gFontAscent = 0;
     return;
   }
-  gfx->setFont((gLang == LANG_KO) ? CJK_FONT_KO : (gLang == LANG_ZH) ? CJK_FONT_ZH : CJK_FONT_JA);
+  gfx->setFont((gLang == LANG_KO) ? CJK_FONT_KO : (gLang == LANG_ZH || gLang == LANG_ZHS) ? CJK_FONT_ZH : CJK_FONT_JA);
   gfx->setUTF8Print(true);     // las cadenas CJK son UTF-8 multibyte
   int16_t x1, y1;
   uint16_t w, h;
@@ -1601,7 +1661,7 @@ void printT(const char *s) {
 // Pantallas que solo cambian con un toque (o con un dato que cambia muy de vez en cuando):
 // mientras su "clave" no cambie no se repintan ni se vuelcan por QSPI.
 static bool staticScreen() {
-  if (pet.awaitingStarter()) return true;
+  if (gLangPick || pet.awaitingStarter()) return true;
   if (galleryOpen || gameOpen || sackOpen) return false;  // la galeria gestiona su propio repintado
   if (kbOpen || clockOpen) return true;
   return cardOpen && cardPage != 0;  // la pagina 0 tiene el retrato animado
@@ -1609,7 +1669,7 @@ static bool staticScreen() {
 static uint32_t mixKey(uint32_t h, uint32_t v) { return (h ^ v) * 16777619u; }
 static uint32_t screenKey() {
   uint32_t h = 2166136261u;
-  h = mixKey(h, pet.awaitingStarter() ? 1 : kbOpen ? 2 : clockOpen ? 3 : 4 + cardPage);
+  h = mixKey(h, gLangPick ? 9 : pet.awaitingStarter() ? 1 : kbOpen ? 2 : clockOpen ? 3 : 4 + cardPage);
   h = mixKey(h, sdEpoch);
   if (kbOpen) {
     h = mixKey(h, nameLen);
@@ -1652,6 +1712,10 @@ bool render() {
     screenKeyValid = true;
   } else {
     screenKeyValid = false;
+  }
+  if (gLangPick) {  // first run: language before anything else
+    renderLangPick();
+    return true;
   }
   if (pet.awaitingStarter()) {  // primera partida: elegir inicial (prioridad total)
     renderStarterSelect();
@@ -2217,7 +2281,7 @@ void drawClockBtn(int x, int y, const char *l) {
 #define SND_PILL_W 96
 #define BRI_PILL_X (183 + UI_DX)         // pildora de brillo, centrada (cicla los niveles al tocar)
 #define BRI_PILL_W 100
-static const char *const LANG_CODES[LANG_COUNT] = { "ES", "EN", "FR", "DE", "IT", "PT", "JA", "KO", "NL", "ZH" };
+static const char *const LANG_CODES[LANG_COUNT] = { "ES", "EN", "FR", "DE", "IT", "PT", "JA", "KO", "NL", "TW", "CN" };
 
 // tres barras crecientes (brillo, volumen); las `lit` primeras van rellenas
 static void drawLevelBars(int x, int lit) {

@@ -8,14 +8,15 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import test_i18n_formats as T
 ROOT = os.path.join(HERE, '..')
 src = open(os.path.join(ROOT, 'i18n.cpp'), encoding='utf-8').read()
-zi = T.LANGS.index('ZH')
-chars = set(chr(c) for c in range(0x20, 0x7F))
+chars = set(chr(c) for c in range(0x20, 0x7F)) | set('繁體中文简体')   # + the two language names on the first-run picker
+zis = [T.LANGS.index('ZH'), T.LANGS.index('ZHS')]
 for name in ('STRINGS', 'MED_NAME', 'MED_LBL', 'MED_DSC'):
-    for s in T.extract_table(src, name, len(T.LANGS))[zi]:
-        chars |= set(ast.literal_eval(s))
+    for zi in zis:
+        for s in T.extract_table(src, name, len(T.LANGS))[zi]:
+            chars |= set(ast.literal_eval(s))
 ns = {}; exec(open(os.path.join(HERE, 'dex_names.py'), encoding='utf-8').read(), ns)
 for d in ns['LOCAL_NAMES'].values():
-    chars |= set(d.get('zh', ''))
+    chars |= set(d.get('zh', '')) | set(d.get('zh_hans', ''))
 hexf = {}
 for line in open(sys.argv[1], encoding='ascii'):
     cp, bits = line.strip().split(':')
