@@ -1640,8 +1640,6 @@ int gFontAscent = 0;  // px del borde superior a la linea base, 0 = fuente clasi
 // en que el conjunto de korean2 sea ese; el ASCII se da por presente.
 // Sin comprobar en placa: si CJK_SIZE_DIV 2 le sienta a korean2 igual que a la
 // japonesa. El ascenso si se mide en tiempo de ejecucion en applyLangFont().
-#define CJK_FONT_JA u8g2_font_unifont_t_japanese3
-#define CJK_FONT_KO u8g2_font_unifont_t_korean2
 #define CJK_FONT_ZH fp_font_zh_tc    // Traditional Chinese: Noto Sans CJK TC 22 px for body text, Unifont scaled for big text (tools/gen_zh_font*.py)
 #define CJK_FONT_ZHS fp_font_zh_sc   // Simplified Chinese: the same with the SC glyphs
 #define CJK_SIZE_DIV 2
@@ -1673,7 +1671,7 @@ void applyLangFont() {
     gFontAscent = 0;
     return;
   }
-  gfx->setFont((gLang == LANG_KO) ? CJK_FONT_KO : (gLang == LANG_ZH) ? CJK_FONT_ZH : (gLang == LANG_ZHS) ? CJK_FONT_ZHS : CJK_FONT_JA);
+  gfx->setFont((gLang == LANG_ZHS) ? CJK_FONT_ZHS : CJK_FONT_ZH);
   gfx->setUTF8Print(true);     // las cadenas CJK son UTF-8 multibyte
   int16_t x1, y1;
   uint16_t w, h;
@@ -2351,7 +2349,7 @@ void drawClockBtn(int x, int y, const char *l) {
 #define SND_PILL_W 96
 #define BRI_PILL_X (183 + UI_DX)         // pildora de brillo, centrada (cicla los niveles al tocar)
 #define BRI_PILL_W 100
-static const char *const LANG_CODES[LANG_COUNT] = { "ES", "EN", "FR", "DE", "IT", "PT", "JA", "KO", "NL", "TW", "CN" };
+static const char *const LANG_CODES[LANG_COUNT] = { "ES", "EN", "FR", "DE", "IT", "PT", "NL", "TW", "CN" };
 
 // tres barras crecientes (brillo, volumen); las `lit` primeras van rellenas
 static void drawLevelBars(int x, int lit) {
@@ -2493,10 +2491,6 @@ void clockTap(int16_t x, int16_t y) {
     }
     if (x >= LANG_PILL_X && x < LANG_PILL_X + LANG_PILL_W) {  // cicla idioma
       Lang nl = (Lang)((gLang + 1) % LANG_COUNT);
-#if defined(BOARD_FAKEPOD_NANO_PRO)
-      // the Japanese / Korean fonts are not ported (their text would be blank): the pill skips them
-      while (nl == LANG_JA || nl == LANG_KO) nl = (Lang)((nl + 1) % LANG_COUNT);
-#endif
       setLang(nl);
       applyLangFont();  // la fuente cambia con el idioma
       sfxPlay(SFX_TAP);

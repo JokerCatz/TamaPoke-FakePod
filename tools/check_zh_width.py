@@ -8,7 +8,7 @@ import ast, test_i18n_formats as T
 SPEC = T.SPEC_RE
 def width(s, lang):
     s = SPEC.sub('000', s)
-    cjk = lang in ('JA', 'KO', 'ZH', 'ZHS')
+    cjk = lang in ('ZH', 'ZHS')
     w = 0
     for ch in s:
         full = unicodedata.east_asian_width(ch) in ('W', 'F')

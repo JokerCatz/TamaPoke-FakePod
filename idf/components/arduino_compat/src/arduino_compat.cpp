@@ -57,8 +57,6 @@ EspShim ESP;
 TwoWire Wire;
 LittleFSFS LittleFS;
 SDMMCFS SD_MMC;
-const uint8_t u8g2_font_unifont_t_japanese3[1] = {0};
-const uint8_t u8g2_font_unifont_t_korean2[1] = {0};
 
 int SerialShim::printf(const char *fmt, ...) { va_list a; va_start(a, fmt); int n = vprintf(fmt, a); va_end(a); return n; }
 long random(long hi) { return hi <= 0 ? 0 : (long)(hw_random32() % (uint32_t)hi); }

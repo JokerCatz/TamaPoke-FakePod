@@ -6,57 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  firmware:
-    name: Compile firmware
+  # The upstream Arduino compile jobs (arduino-cli, four boards) were removed in this fork: the language enum, the board layer and the build system changed (ESP-IDF
+  # port in idf/), so TamaPoke.ino is only kept untouched as the merge base and no longer builds with arduino-cli. The jobs below replace them.
+  fakepod-host:
+    name: Fake Pod app on the PC (compile + run every screen)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install arduino-cli
-        uses: arduino/setup-arduino-cli@v2
-
-      # Fijado a la version del core verificada para compilar este sketch. Subirla
-      # a mano y a proposito: alguna version nueva del core ha roto librerias de
-      # terceros antes.
-      - name: Install ESP32 core
-        run: |
-          arduino-cli config init --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-          arduino-cli core update-index
-          arduino-cli core install esp32:esp32@3.3.10
-
-      - name: Install libraries
-        run: arduino-cli lib install "GFX Library for Arduino" SensorLib XPowersLib U8g2
-
-      - name: Compile
-        run: >
-          arduino-cli compile --warnings=all
-          --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
-          .
-
-      # Guition/Sunton 4848S040 (ST7701S RGB 480x480 + GT911): mismo codigo,
-      # la capa board.h elige placa con un flag de compilacion. Se compila aqui
-      # para que la compatibilidad no se oxide.
-      - name: Compile (Guition 4848S040)
-        run: >
-          arduino-cli compile --warnings=all
-          --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
-          --build-property "compiler.cpp.extra_flags=-DBOARD_GUITION_4848S040"
-          .
-
-      # SpotPear 1.28" AI Ball (GC9A01 240x240 + CST816, experimental): same
-      # code and FQBN, the UI is drawn at 480 and shrunk 2:1 on flush.
-      - name: Compile (SpotPear 1.28 AI Ball)
-        run: >
-          arduino-cli compile --warnings=all
-          --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
-          --build-property "compiler.cpp.extra_flags=-DBOARD_SPOTPEAR_BALL128"
-          .
-
-      # Waveshare AMOLED 1.75C (experimental): mismo codigo con
-      # -DBOARD_AMOLED_175C=1 y su tabla de particiones (boards/175c/). Se
-      # compila con el mismo script que se usa en casa para que no se oxide.
-      - name: Compile (Waveshare AMOLED 1.75C)
-        run: tools/build_175c.sh --out "$RUNNER_TEMP/out-175c"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install pillow
+      - name: Width budget of the Chinese strings
+        run: python3 tools/check_zh_width.py
+      # tools/host/build.sh compiles the real app (idf/main/tamapoke_app.cpp) against the compat layer and fake hardware; shots.sh renders every screen in every language.
+      - name: Compile and render every screen
+        run: tools/host/shots.sh
+      - name: Screens were produced
+        run: test "$(ls tools/host/out/shots/*.png | wc -l)" -ge 40
 
   generated:
     name: Generated headers up to date

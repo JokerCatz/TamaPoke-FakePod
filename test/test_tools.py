@@ -123,7 +123,7 @@ class TestDexData(unittest.TestCase):
         # minusculas en los nombres); el japones y el coreano con una fuente
         # U8g2 y van en UTF-8, asi que ni son ASCII ni tienen mayusculas que
         # comprobar.
-        LATINOS, CJK = ('fr', 'de'), ('ja', 'ko')
+        LATINOS, CJK = ('fr', 'de'), ('zh', 'zh_hans')   # this fork: Traditional / Simplified Chinese instead of Japanese / Korean
         for num, langs in self.NAMES.items():
             self.assertIn(num, self.byNum, f'nombre traducido de una especie inexistente: {num}')
             for lang, name in langs.items():

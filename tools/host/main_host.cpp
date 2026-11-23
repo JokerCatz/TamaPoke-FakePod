@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     pet.starterPick = false;
     pet.speciesId = 25; pet.ageMinutes = 60 * 30; pet.streak = 5; pet.bestStreak = 9; pet.bond = 120; pet.medals = 0x2F; pet.totalMedals = 12;
     strcpy(pet.nick, "");
-    static const struct { Lang l; const char *tag; } L[] = { {LANG_EN, "en"}, {LANG_DE, "de"}, {LANG_ES, "es"}, {LANG_JA, "ja"}, {LANG_ZH, "zh"}, {LANG_ZHS, "zhs"} };
+    static const struct { Lang l; const char *tag; } L[] = { {LANG_EN, "en"}, {LANG_DE, "de"}, {LANG_ES, "es"}, {LANG_ZH, "zh"}, {LANG_ZHS, "zhs"} };
     for (auto &x : L) {
         setLang(x.l); applyLangFont();
         reset_ui(); shot(dir, x.tag, "main");
